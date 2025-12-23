@@ -2,7 +2,7 @@
 
 This repository provides the official implementation of the paper: **"Training-Free Adaptive Quantization for Variable Rate Image Coding for Machines."**
 
-Our paper will be available at arXiv. 
+Our paper is available at [arXiv](https://arxiv.org/abs/2511.05836). 
 
 ## Installation
 
