@@ -14,9 +14,9 @@ from utils import *
 def parse_args(argv):
     parser = argparse.ArgumentParser(description="Example testing script (VBR variants).")
     parser.add_argument("--checkpoint", type=str, help="Path to a checkpoint")
-    parser.add_argument("--input", type=str, required=True, help="Path to input_images")
-    parser.add_argument("--save-path", type=str, required=True, help="Save path")
-    parser.add_argument("--delta", type=float, required=True, help="Save path")
+    parser.add_argument("--input", type=str, required=True, help="Path to input images")
+    parser.add_argument("--save_path", type=str, required=True, help="Path to save images")
+    parser.add_argument("--d", type=float, required=True, help="Parameter to control the rate-mAP tradeoff")
 
     args = parser.parse_args(argv)
     return args
@@ -46,7 +46,7 @@ def main(argv):
         img_list.append(file)
 
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-    icm = ICM(delta=args.delta)
+    icm = ICM(d=args.d)
     icm = icm.to(device)
     icm.eval()
     Bit_rate = 0
@@ -87,7 +87,7 @@ def main(argv):
             yi = yi.transpose(1,2,0)
             yi = cv2.cvtColor(yi, cv2.COLOR_RGB2BGR)
             img_PATH = img_path[-16:-4]
-            #cv2.imwrite(out_path + '/%s.png'%(img_PATH),yi.astype(np.uint8))
+            cv2.imwrite(out_path + '/%s.png'%(img_PATH),yi.astype(np.uint8))
 
     print('\n---Result bpp---')
     print(f'Average_Bit-rate: {(Bit_rate/len(img_list)):.3f} bpp')

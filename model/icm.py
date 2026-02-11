@@ -146,19 +146,6 @@ def conv(in_channels, out_channels, kernel_size=5, stride=2):
         padding=kernel_size // 2,
     )
 
-def _slice_sigmas_from_scales(scales_per_slice):
-    # list of [1, C_i, H, W] tensors -> list of float
-    return [float(s.abs().mean().item()) for s in scales_per_slice]
-
-def _make_slice_deltas(sigmas, base_delta=4.0, alpha=0.7, dmin=1.0, dmax=12.0, eps=1e-6):
-    sigma_bar = sum(sigmas) / max(len(sigmas), 1)
-    deltas = []
-    for s in sigmas:
-        d = base_delta * ((sigma_bar / (s + eps)) ** alpha)
-        d = max(dmin, min(dmax, float(d)))
-        deltas.append(d)
-    return deltas
-
 class WMSA(nn.Module):
     """ Self-attention module in Swin Transformer
     """
@@ -331,7 +318,7 @@ class SwinBlock(nn.Module):
         return trans_x
 
 class ICM(CompressionModel):
-    def __init__(self, config=[2, 2, 2, 2, 2, 2], head_dim=[8, 16, 32, 32, 16, 8], drop_path_rate=0, N=128,  M=320, num_slices=5, max_support_slices=5, delta=8, **kwargs):
+    def __init__(self, config=[2, 2, 2, 2, 2, 2], head_dim=[8, 16, 32, 32, 16, 8], drop_path_rate=0, N=128,  M=320, num_slices=5, max_support_slices=5, d=8, **kwargs):
         #super().__init__(entropy_bottleneck_channels=N)
         super().__init__()
         self.config = config
@@ -339,7 +326,7 @@ class ICM(CompressionModel):
         self.window_size = 8
         self.num_slices = num_slices
         self.max_support_slices = max_support_slices
-        self.delta = delta
+        self.d = d
         dim = N
         self.M = M
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(config))]
@@ -548,8 +535,8 @@ class ICM(CompressionModel):
         indexes_list = []
         y_strings = []
 
-        max_deltas = torch.linspace(1.0, self.delta, self.num_slices+1)
-        min_deltas = torch.linspace(self.delta, 1.0, self.num_slices + 1)
+        max_ds = torch.linspace(1.0, self.d, self.num_slices+1)
+        min_ds = torch.linspace(self.d, 1.0, self.num_slices + 1)
 
         for slice_index, y_slice in enumerate(y_slices):
             support_slices = (y_hat_slices if self.max_support_slices < 0 else y_hat_slices[:self.max_support_slices])
@@ -564,12 +551,12 @@ class ICM(CompressionModel):
             scale = self.cc_scale_transforms[slice_index](scale_support)
             scale = scale[:, :, :y_shape[0], :y_shape[1]]
 
-            if self.delta >= 1.0:
-                max_delta_i = max_deltas[slice_index+1]
-                delta = decide_delta(scale, step_min = 1.0, step_max = max_delta_i)
-            elif self.delta < 1.0:
-                min_delta_i = min_deltas[slice_index]
-                delta = decide_delta(scale, step_min=min_delta_i, step_max=1.0)
+            if self.d >= 1.0:
+                max_d_i = max_ds[slice_index+1]
+                delta = decide_delta(scale, step_min = 1.0, step_max = max_d_i)
+            elif self.d < 1.0:
+                min_d_i = min_ds[slice_index]
+                delta = decide_delta(scale, step_min=min_d_i, step_max=1.0)
             index = self.gaussian_conditional.build_indexes(scale / delta)
 
             outputs = y_slice.clone()
@@ -634,8 +621,8 @@ class ICM(CompressionModel):
         decoder = RansDecoder()
         decoder.set_stream(y_string)
 
-        max_deltas = torch.linspace(1.0, self.delta, self.num_slices+1)
-        min_deltas = torch.linspace(self.delta, 1.0, self.num_slices + 1)
+        max_ds = torch.linspace(1.0, self.d, self.num_slices+1)
+        min_ds = torch.linspace(self.d, 1.0, self.num_slices + 1)
 
         for slice_index in range(self.num_slices):
             support_slices = (y_hat_slices if self.max_support_slices < 0 else y_hat_slices[:self.max_support_slices])
@@ -649,12 +636,12 @@ class ICM(CompressionModel):
             scale = self.cc_scale_transforms[slice_index](scale_support)
             scale = scale[:, :, :y_shape[0], :y_shape[1]]
             
-            if self.delta >= 1.0:
-                max_delta_i = max_deltas[slice_index+1]
-                delta = decide_delta(scale, step_min = 1.0, step_max = max_delta_i)
-            elif self.delta < 1.0:
-                min_delta_i = min_deltas[slice_index]
-                delta = decide_delta(scale, step_min=min_delta_i, step_max=1.0)
+            if self.d >= 1.0:
+                max_d_i = max_ds[slice_index+1]
+                delta = decide_delta(scale, step_min = 1.0, step_max = max_d_i)
+            elif self.d < 1.0:
+                min_d_i = min_ds[slice_index]
+                delta = decide_delta(scale, step_min=min_d_i, step_max=1.0)
 
             index = self.gaussian_conditional.build_indexes(scale / delta)
 

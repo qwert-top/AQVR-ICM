@@ -39,17 +39,17 @@ param ---- param_details.txt
 #### 2. Run Evaluation
 
 You can now run the evaluation using the coding.py script. 
-The --delta command-line argument corresponds to the parameter $d$ mentioned in our paper.
-You can set --delta to any value greater than 0.
+The --d command-line argument corresponds to the parameter $d$ mentioned in our paper.
+You can set --d to any value greater than 0.
 
 Argument descriptions:
 
 - --checkpoint: Path to the downloaded SA-ICM model checkpoint.
 - --input: Path to your input image or a directory of images.
-- --save-path: Directory where the encoded results will be saved.
-- --delta: The quantization parameter (corresponds to d in the paper).
+- --save_path: Directory where the encoded results will be saved.
+- --d: The quantization parameter (corresponds to d in the paper).
 
 Example command (using $d = 8$):
 ```bash
-python coding.py --checkpoint param/icm_78.pth.tar --input input_image --save-path /path/to/save --delta 8
+python coding.py --checkpoint param/icm_78.pth.tar --input input_image --save-path /path/to/save --d 8
 ```
