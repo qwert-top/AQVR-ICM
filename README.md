@@ -51,5 +51,5 @@ Argument descriptions:
 
 Example command (using $d = 8$):
 ```bash
-python coding.py --checkpoint param/icm_78.pth.tar --input input_image --save-path /path/to/save --d 8
+python coding.py --checkpoint param/icm_78.pth.tar --input input_image --save_path /path/to/save --d 8
 ```
