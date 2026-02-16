@@ -4,6 +4,23 @@ This repository provides the official implementation of the paper: **"Training-F
 
 Our paper is available at [arXiv](https://arxiv.org/abs/2511.05836). 
 
+## Overview
+
+We propose a training-free variable rate method for Image Coding for Machines (ICM).
+
+### Key Advantages
+
+- **Training-free**: Eliminates additional training, reducing computational costs and simplifying deployment.
+- **Optimized for ICM**: Addresses the lack of effective variable rate control specifically for machine vision tasks.
+- **Continuous Bitrate Control**: Enables seamless adjustment across a wide range of bitrates.
+- **Single-Parameter Adjustment**: Allows intuitive and flexible control via one user-given parameter.
+
+### How it Works
+The method adaptively modulates quantization step sizes across both channel and spatial dimensions by leveraging scale parameters from the hyperprior network. This allows the model to preserve semantically important regions while coarsely quantizing less critical areas.
+
+### Results
+Experimental results demonstrate the effectiveness of our approach, achieving up to 11.07% BD-rate savings compared to non-adaptive variable rate baselines.
+
 ## Installation
 
 #### 1. Clone this repository:
